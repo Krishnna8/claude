@@ -1,0 +1,12 @@
+image:
+  repository: krishnaves/hello-world-app
+  tag: latest
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  port: 80
+
+vault:
+  enabled: true
+  secretPath: "secret/data/hello-world"

@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        vault.hashicorp.com/agent-inject: "true"
+        vault.hashicorp.com/agent-inject-secret-config.json: "secret/data/hello-world"
+        vault.hashicorp.com/agent-inject-template-config.json: |
+          {{ with secret "secret/data/hello-world" }}
+          {{ .Data.data | toJSON }}
+          {{ end }}
+        vault.hashicorp.com/role: "hello-world"
+    spec:
+      serviceAccountName: hello-world-sa
+      containers:
+      - name: {{ .Chart.Name }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+        ports:
+        - containerPort: 80
+        env:
+        - name: VAULT_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: vault-token-secret
+              key: token
